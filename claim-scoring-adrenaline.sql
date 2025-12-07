@@ -815,7 +815,10 @@ FROM (
       ) AS `VCF ID Number`,
 
       MAX(`Record Type ID.Record Type Name`)       AS `Record Type ID.Record Type Name`,
-      MAX(`Record Type ID.Record Type Name`)='VCF_Deceased' AS is_deceased,
+      CASE
+        WHEN MAX(`Record Type ID.Record Type Name`) = 'VCF_Deceased' THEN 1
+        ELSE 0
+      END AS is_deceased,
 
       MAX(`Status`)                                AS `Status`,
       MAX(`Sub-Status`)                            AS `Sub-Status`,
