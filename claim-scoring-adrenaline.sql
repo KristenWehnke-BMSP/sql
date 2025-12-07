@@ -1009,22 +1009,15 @@ FROM (
   LEFT JOIN (
     SELECT
       c.county_key,
-      c.n AS county_sample_n,
+      c.county_sample_n,
       c.avg_days,
-      g.mu0,
-      g.sd0,
-      (c.n / (c.n + 30.0)) * c.avg_days + (30.0 / (c.n + 30.0)) * g.mu0 AS eb_days,
-      c.avg_days + 1.96 * COALESCE(c.sd_days, g.sd0) / NULLIF(SQRT(c.n),0) AS ucb95_days,
-      GREATEST(
-        (c.n / (c.n + 30.0)) * c.avg_days + (30.0 / (c.n + 30.0)) * g.mu0,
-        c.avg_days + 1.96 * COALESCE(c.sd_days, g.sd0) / NULLIF(SQRT(c.n),0)
-      ) AS conservative_days
+      /* Use simple averages only (Adrenaline-safe) */
+      c.avg_days AS conservative_days
     FROM (
       SELECT
         b.county_key,
-        COUNT(*) AS n,
-        AVG(b.days) AS avg_days,
-        STDDEV_POP(b.days) AS sd_days
+        COUNT(*) AS county_sample_n,
+        AVG(b.days) AS avg_days
       FROM (
         SELECT
           COALESCE(NULLIF(TRIM(`County`),''),'None') AS county_key,
@@ -1035,18 +1028,6 @@ FROM (
       ) b
       GROUP BY b.county_key
     ) c
-    JOIN (
-      SELECT
-        AVG(gb.days) AS mu0,
-        STDDEV_POP(gb.days) AS sd0
-      FROM (
-        SELECT DATEDIFF(`CP Decree`, `Filed`) AS days
-        FROM `surrogates_filings`
-        WHERE `Filed` IS NOT NULL
-          AND `CP Decree` IS NOT NULL
-      ) gb
-    ) g
-      ON 1=1
   ) csp
     ON csp.county_key = county_for_acct.county_key
 
