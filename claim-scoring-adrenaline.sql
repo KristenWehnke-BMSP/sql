@@ -1035,7 +1035,7 @@ FROM (
       ) b
       GROUP BY b.county_key
     ) c
-    CROSS JOIN (
+    JOIN (
       SELECT
         AVG(gb.days) AS mu0,
         STDDEV_POP(gb.days) AS sd0
@@ -1046,6 +1046,7 @@ FROM (
           AND `CP Decree` IS NOT NULL
       ) gb
     ) g
+      ON 1=1
   ) csp
     ON csp.county_key = county_for_acct.county_key
 
@@ -1697,9 +1698,10 @@ FROM (
         ) e
         GROUP BY e.`Account ID`
       ) agg
-    CROSS JOIN (
+    JOIN (
       SELECT 1 AS use_dampener, 8.0 AS min_opps, 30.0 AS bnf_bonus
     ) cfg
+      ON 1=1
     LEFT JOIN (
       /* BnF run detection on the same filtered window (Adrenaline-safe, window functions only) */
       SELECT
